@@ -19,8 +19,11 @@ class ResponseBody(BaseModel):
     status: str
     data: List[Tuple[str, int]]
 
+@app.get("/")
+def printinfo():
+	return "ANZIP API"
 
-@app.post("/test")
+@app.get("/send")
 async def your_api_function(request_body: RequestBody):
     value = maindef(month=request_body.month, day=request_body.day, time=request_body.time,
                     subwayStop=request_body.subwayStop, direction=request_body.direction)
