@@ -1,9 +1,12 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import font_manager, rc
 
 def maindef(month, day, time, subwayStop, direction):
     # 몇호선인지 판별하기 위한 변수 (etc.군자역의 경우 5호선, 7호선 동시 존재)
     global status
     line = 0
+    week_day = ""
 
     direc_dict = {
         "up": "상선",
@@ -13,11 +16,11 @@ def maindef(month, day, time, subwayStop, direction):
     }
 
     if day == "HOL":
-        day = "공휴일"
+        week_day = "공휴일"
     elif day == "MON" or day == "TUE" or day == "WED" or day == "THU" or day == "FRI":
-        day = "평일"
+        week_day = "평일"
     elif day == "SAT":
-        day = "토요일"
+        week_day = "토요일"
 
     direction = direc_dict.get(direction)
 
@@ -48,6 +51,9 @@ def maindef(month, day, time, subwayStop, direction):
     # print(f"File path: {file_path}")
     data = pd.read_csv("dataset/Congestion.csv")
 
+    # # 한글 폰트 설정
+    # rc('font', family='AppleGothic')
+
     # '역번호'가 1과 2이고 '상하구분'이 '외선'인 데이터 필터링
     filtered_data = data[(data['출발역'] == subwayStop) & (data['상하구분'] == direction) & (data['호선'] == line)].copy()
     # print(filtered_data)
@@ -76,18 +82,63 @@ def maindef(month, day, time, subwayStop, direction):
         average_saturday.append(saturday_data.iloc[:, start_index:end_index].mean(axis=1).values[0])
         average_holiday.append(holiday_data.iloc[:, start_index:end_index].mean(axis=1).values[0])
 
-    if day == "공휴일":
-        status = get_status_time(average_holiday, average_time_list, time)
-    elif day == "평일":
-        status = get_status_time(average_weekday, average_time_list, time)
-    elif day == "토요일":
-        status = get_status_time(average_saturday, average_time_list, time)
+    if week_day == "공휴일":
+        # # 시간대별 데이터 시각화
+        # plt.figure(figsize=(12, 6))
+        # plt.plot(range(0, len(time_columns), 2), average_holiday, label='공휴일')
+        # plt.title(f'{subwayStop}역 {direction} 특정 시간대별 평균 승객 수')
+        # plt.xlabel('시간')
+        # plt.ylabel('평균 승객 수')
+        # plt.legend()
+        # plt.xticks(range(0, len(time_columns), 2), [time_columns[i] for i in range(0, len(time_columns), 2)],
+        #            rotation=45)
+        # plt.grid(True)
+        # # 값 표시
+        # for i in range(len(average_holiday)):
+        #     plt.text(i * 2, average_holiday[i], f'{average_holiday[i]:.2f}', ha='right', va='bottom', fontsize=8,
+        #              color='blue')
+        # plt.show()
+        status = get_status_time(average_holiday, average_time_list, time, month, day)
+    elif week_day == "평일":
+        # # 시간대별 데이터 시각화
+        # plt.figure(figsize=(12, 6))
+        # plt.plot(range(0, len(time_columns), 2), average_weekday, label='평일')
+        # plt.title(f'{subwayStop}역 {direction} 특정 시간대별 평균 승객 수')
+        # plt.xlabel('시간')
+        # plt.ylabel('평균 승객 수')
+        # plt.legend()
+        # plt.xticks(range(0, len(time_columns), 2), [time_columns[i] for i in range(0, len(time_columns), 2)],
+        #            rotation=45)
+        # plt.grid(True)
+        # # 값 표시
+        # for i in range(len(average_weekday)):
+        #     plt.text(i * 2, average_weekday[i], f'{average_weekday[i]:.2f}', ha='right', va='bottom', fontsize=8,
+        #              color='blue')
+        # plt.show()
+        status = get_status_time(average_weekday, average_time_list, time, month, day)
+    elif week_day == "토요일":
+        # # 시간대별 데이터 시각화
+        # plt.figure(figsize=(12, 6))
+        # plt.plot(range(0, len(time_columns), 2), average_saturday, label='토요일')
+        # plt.title(f'{subwayStop}역 {direction} 특정 시간대별 평균 승객 수')
+        # plt.xlabel('시간')
+        # plt.ylabel('평균 승객 수')
+        # plt.legend()
+        # plt.xticks(range(0, len(time_columns), 2), [time_columns[i] for i in range(0, len(time_columns), 2)],
+        #            rotation=45)
+        # plt.grid(True)
+        # # 값 표시
+        # for i in range(len(average_saturday)):
+        #     plt.text(i * 2, average_saturday[i], f'{average_saturday[i]:.2f}', ha='right', va='bottom', fontsize=8,
+        #              color='blue')
+        # plt.show()
+        status = get_status_time(average_saturday, average_time_list, time, month, day)
 
     return status
 
 
 # 시간으로 분류
-def get_status_time(data, time_list, time):
+def get_status_time(data, time_list, time, month, day):
     status_dict = {
         "6시": [],
         "7시": [],
@@ -143,6 +194,62 @@ def get_status_time(data, time_list, time):
 
     time = time.split(":")[0] + "시"
     time_index = str(int(str(time.split('시')[0]))) + "시"
+    MON_index = ["9시", "22시", "23시"]
+    FRI_index = ["16시", "17시", "18시", "19시", "20시", "21시", "22시", "23시"]
+    # 월, 요일, 시간대별 가중치 적용
+    if day=="MON":
+        for i in MON_index:
+            temp = list(status_dict[i][0])
+            if (temp[1] < 10):
+                temp[1] += 1
+            temp = tuple(temp)
+            status_dict[i].pop()
+            status_dict[i].append(temp)
+            if status_dict[i][0][1] >= 8:
+                temp2 = list(status_dict[i][0])
+                temp2[0] = "good"
+                temp2 = tuple(temp2)
+                status_dict[i].pop()
+                status_dict[i].append(temp2)
+            elif status_dict[i][0][1] >= 4:
+                temp3 = list(status_dict[i][0])
+                temp3[0] = "soso"
+                temp3 = tuple(temp3)
+                status_dict[i].pop()
+                status_dict[i].append(temp3)
+            elif status_dict[i][0][1] >= 4:
+                temp4 = list(status_dict[i][0])
+                temp4[0] = "bad"
+                temp4 = tuple(temp4)
+                status_dict[i].pop()
+                status_dict[i].append(temp4)
+    elif day == "FRI":
+        for i in FRI_index:
+            temp = list(status_dict[i][0])
+            if (temp[1] < 10):
+                temp[1] -= 1
+            temp = tuple(temp)
+            status_dict[i].pop()
+            status_dict[i].append(temp)
+            if status_dict[i][0][1] >= 8:
+                temp2 = list(status_dict[i][0])
+                temp2[0] = "good"
+                temp2 = tuple(temp2)
+                status_dict[i].pop()
+                status_dict[i].append(temp2)
+            elif status_dict[i][0][1] >= 4:
+                temp3 = list(status_dict[i][0])
+                temp3[0] = "soso"
+                temp3 = tuple(temp3)
+                status_dict[i].pop()
+                status_dict[i].append(temp3)
+            elif status_dict[i][0][1] >= 4:
+                temp4 = list(status_dict[i][0])
+                temp4[0] = "bad"
+                temp4 = tuple(temp4)
+                status_dict[i].pop()
+                status_dict[i].append(temp4)
+
     status = status_dict[time_index][0][0]
     data = []
     now = int(str(time.split('시')[0]))
