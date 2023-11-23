@@ -19,7 +19,7 @@ class commentsBody(BaseModel):
 
 class ResponseBody(BaseModel):
     status: str
-    data: List[List[str, int]]
+    data: List[Tuple[str, int]]
 
 @app.get("/")
 def printinfo():
@@ -30,7 +30,10 @@ async def senddata(request_body: RequestBody):
     value = maindef(month=request_body.month, day=request_body.day, time=request_body.time,
                     subwayStop=request_body.subwayStop, direction=request_body.direction)
     status = value[0]
-    data = value[1]
+    d = value[1]
+    data = list()
+    for i in range(len(d)):
+        data.append(list(d[i]))
     # ResponseBody 모델을 이용하여 응답 데이터를 반환
     response_model = ResponseBody(status=status, data=data)
     return response_model

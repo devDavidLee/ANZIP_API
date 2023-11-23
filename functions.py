@@ -197,13 +197,13 @@ def get_status_time(data, time_list, time):
     now = int(time.split('시')[0])
     if now == 6 or now == 7:
         for i in range(6, 11):
-            data.append([str(i), status_dict.get(str(i) + "시")[0][1]])
+            data.append((str(i), status_dict.get(str(i) + "시")[0][1]))
     elif now == 22 or now == 23:
         for i in range(19, 24):
-            data.append([str(i), status_dict.get(str(i) + "시")[0][1]])
+            data.append((str(i), status_dict.get(str(i) + "시")[0][1]))
     else:
         for i in range(now - 2, now + 3):
-            data.append([str(i), status_dict.get(str(i) + "시")[0][1]])
+            data.append((str(i), status_dict.get(str(i) + "시")[0][1]))
 
     # print(time)
     # print(status)
