@@ -60,4 +60,3 @@ async def getcomments(comments_body: commentsBody):
 #     response_model = ResponseBody(status=status, data=data)
 #
 #     return response_model
-

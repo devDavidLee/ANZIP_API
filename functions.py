@@ -1,6 +1,4 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib import font_manager, rc
 
 def maindef(month, day, time, subwayStop, direction):
     # 몇호선인지 판별하기 위한 변수 (etc.군자역의 경우 5호선, 7호선 동시 존재)
@@ -50,9 +48,6 @@ def maindef(month, day, time, subwayStop, direction):
     # print(f"File path: {file_path}")
     data = pd.read_csv("dataset/Congestion.csv")
 
-    # # 한글 폰트 설정
-    # rc('font', family='AppleGothic')
-
     # '역번호'가 1과 2이고 '상하구분'이 '외선'인 데이터 필터링
     filtered_data = data[(data['출발역'] == subwayStop) & (data['상하구분'] == direction) & (data['호선'] == line)].copy()
     # print(filtered_data)
@@ -82,55 +77,10 @@ def maindef(month, day, time, subwayStop, direction):
         average_holiday.append(holiday_data.iloc[:, start_index:end_index].mean(axis=1).values[0])
 
     if day == "공휴일":
-        # # 시간대별 데이터 시각화
-        # plt.figure(figsize=(12, 6))
-        # plt.plot(range(0, len(time_columns), 2), average_holiday, label='공휴일')
-        # plt.title(f'{subwayStop}역 {direction} 특정 시간대별 평균 승객 수')
-        # plt.xlabel('시간')
-        # plt.ylabel('평균 승객 수')
-        # plt.legend()
-        # plt.xticks(range(0, len(time_columns), 2), [time_columns[i] for i in range(0, len(time_columns), 2)],
-        #            rotation=45)
-        # plt.grid(True)
-        # # 값 표시
-        # for i in range(len(average_holiday)):
-        #     plt.text(i * 2, average_holiday[i], f'{average_holiday[i]:.2f}', ha='right', va='bottom', fontsize=8,
-        #              color='blue')
-        # plt.show()
         status = get_status_time(average_holiday, average_time_list, time)
     elif day == "평일":
-        # # 시간대별 데이터 시각화
-        # plt.figure(figsize=(12, 6))
-        # plt.plot(range(0, len(time_columns), 2), average_weekday, label='평일')
-        # plt.title(f'{subwayStop}역 {direction} 특정 시간대별 평균 승객 수')
-        # plt.xlabel('시간')
-        # plt.ylabel('평균 승객 수')
-        # plt.legend()
-        # plt.xticks(range(0, len(time_columns), 2), [time_columns[i] for i in range(0, len(time_columns), 2)],
-        #            rotation=45)
-        # plt.grid(True)
-        # # 값 표시
-        # for i in range(len(average_weekday)):
-        #     plt.text(i * 2, average_weekday[i], f'{average_weekday[i]:.2f}', ha='right', va='bottom', fontsize=8,
-        #              color='blue')
-        # plt.show()
         status = get_status_time(average_weekday, average_time_list, time)
     elif day == "토요일":
-        # # 시간대별 데이터 시각화
-        # plt.figure(figsize=(12, 6))
-        # plt.plot(range(0, len(time_columns), 2), average_saturday, label='토요일')
-        # plt.title(f'{subwayStop}역 {direction} 특정 시간대별 평균 승객 수')
-        # plt.xlabel('시간')
-        # plt.ylabel('평균 승객 수')
-        # plt.legend()
-        # plt.xticks(range(0, len(time_columns), 2), [time_columns[i] for i in range(0, len(time_columns), 2)],
-        #            rotation=45)
-        # plt.grid(True)
-        # # 값 표시
-        # for i in range(len(average_saturday)):
-        #     plt.text(i * 2, average_saturday[i], f'{average_saturday[i]:.2f}', ha='right', va='bottom', fontsize=8,
-        #              color='blue')
-        # plt.show()
         status = get_status_time(average_saturday, average_time_list, time)
 
     return status
@@ -164,37 +114,39 @@ def get_status_time(data, time_list, time):
         time_key = time_list[i]
         # print(data_value)
         if data_value <= 45.0:
-            status_dict[time_key].append(("good", 3))
+            status_dict[time_key].append(("good", 8))
             if data_value < 30.0:
                 status_dict[time_key].pop()
-                status_dict[time_key].append(("good", 2))
+                status_dict[time_key].append(("good", 9))
                 if data_value < 15.0:
                     status_dict[time_key].pop()
-                    status_dict[time_key].append(("good", 1))
+                    status_dict[time_key].append(("good", 10))
         elif data_value <= 90.0:
-            status_dict[time_key].append(("soso", 6))
+            status_dict[time_key].append(("soso", 5))
             if data_value < 75.0:
                 status_dict[time_key].pop()
-                status_dict[time_key].append(("soso", 5))
+                status_dict[time_key].append(("soso", 6))
                 if data_value < 60.0:
                     status_dict[time_key].pop()
-                    status_dict[time_key].append(("soso", 4))
+                    status_dict[time_key].append(("soso", 7))
         elif data_value <= 150.0:
-            status_dict[time_key].append(("bad", 10))
+            status_dict[time_key].append(("bad", 1))
             if data_value < 135.0:
                 status_dict[time_key].pop()
-                status_dict[time_key].append(("bad", 9))
+                status_dict[time_key].append(("bad", 2))
                 if data_value < 120.0:
                     status_dict[time_key].pop()
-                    status_dict[time_key].append(("bad", 8))
+                    status_dict[time_key].append(("bad", 3))
                     if data_value < 105.0:
                         status_dict[time_key].pop()
-                        status_dict[time_key].append(("bad", 7))
+                        status_dict[time_key].append(("bad", 4))
 
     time = time.split(":")[0] + "시"
-    status = status_dict[time][0][0]
+    time_index = str(int(str(time.split('시')[0]))) + "시"
+    status = status_dict[time_index][0][0]
     data = []
-    now = int(time.split('시')[0])
+    now = int(str(time.split('시')[0]))
+    #print(now)
     if now == 6 or now == 7:
         for i in range(6, 11):
             data.append((str(i), status_dict.get(str(i) + "시")[0][1]))
