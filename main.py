@@ -13,16 +13,20 @@ class RequestBody(BaseModel):
     subwayStop: str
     direction: str
 
+class commentsBody(BaseModel):
+    score: int
+    comment: str
+
 class ResponseBody(BaseModel):
     status: str
-    data: List[Tuple[str, int]]
+    data: List[List[str, int]]
 
 @app.get("/")
 def printinfo():
     return "ANZIP API"
 
 @app.post("/send")
-async def your_api_function(request_body: RequestBody):
+async def senddata(request_body: RequestBody):
     value = maindef(month=request_body.month, day=request_body.day, time=request_body.time,
                     subwayStop=request_body.subwayStop, direction=request_body.direction)
     status = value[0]
@@ -31,7 +35,11 @@ async def your_api_function(request_body: RequestBody):
     response_model = ResponseBody(status=status, data=data)
     return response_model
 
-
+@app.post("/comments")
+async def getcomments(comments_body: commentsBody):
+    satis = comments_body.score
+    comments = comments_body.comment
+    return {satis: comments}
 
 
 # @app.get("/send")
